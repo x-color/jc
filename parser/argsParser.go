@@ -58,7 +58,7 @@ func ChoiceFromJSON(jsonData interface{}, keys []Key) (interface{}, error) {
 				return nil, errors.New("key does not exist")
 			}
 		default:
-			return nil, errors.New("can't parse JSON input")
+			return nil, errors.New("can't access JSON object")
 		}
 	}
 	return data, nil
