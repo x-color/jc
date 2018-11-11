@@ -57,7 +57,7 @@ func sliceToString(data []interface{}, formatting bool, nest int) string {
 		case string:
 			str = addSpace(stringToString(value, formatting), nest)
 		case []interface{}:
-			str = sliceToString(convertedValue, formatting, nest+1)
+			str = addSpace(sliceToString(convertedValue, formatting, nest+1), nest)
 		case map[string]interface{}:
 			str = addSpace(objToString(convertedValue, formatting, nest+1), nest)
 		}
