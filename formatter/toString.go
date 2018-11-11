@@ -14,22 +14,26 @@ var formatType = map[string]int{
 	"string":       32,
 }
 
+// dataToString formats and returns string converted from all data type
+func dataToString(data interface{}, formatting bool, nest int) string {
+	switch convertedData := data.(type) {
+	case int64, float64:
+		return numberToString(data, formatting)
+	case bool:
+		return boolToString(data, formatting)
+	case string:
+		return stringToString(data, formatting)
+	case []interface{}:
+		return sliceToString(convertedData, formatting, nest)
+	case map[string]interface{}:
+		return objToString(convertedData, formatting, nest)
+	}
+	return ""
+}
+
 // JSONToString formats and returns string converted JSON object
 func JSONToString(rowData interface{}, formatting bool) string {
-	var str string
-	switch data := rowData.(type) {
-	case int64, float64:
-		str = numberToString(rowData, formatting)
-	case bool:
-		str = boolToString(rowData, formatting)
-	case string:
-		str = stringToString(rowData, formatting)
-	case []interface{}:
-		str = sliceToString(data, formatting, 1)
-	case map[string]interface{}:
-		str = objToString(data, formatting, 1)
-	}
-	return strings.TrimSuffix(str, ",")
+	return strings.TrimSuffix(dataToString(rowData, formatting, 1), ",")
 }
 
 func numberToString(num interface{}, formatting bool) string {
@@ -48,20 +52,7 @@ func boolToString(b interface{}, formatting bool) string {
 func sliceToString(data []interface{}, formatting bool, nest int) string {
 	lines := []string{format("[", formatType["sliceBracket"], formatting)}
 	for _, value := range data {
-		var str string
-		switch convertedValue := value.(type) {
-		case int64, float64:
-			str = addSpace(numberToString(value, formatting), nest)
-		case bool:
-			str = addSpace(boolToString(value, formatting), nest)
-		case string:
-			str = addSpace(stringToString(value, formatting), nest)
-		case []interface{}:
-			str = addSpace(sliceToString(convertedValue, formatting, nest+1), nest)
-		case map[string]interface{}:
-			str = addSpace(objToString(convertedValue, formatting, nest+1), nest)
-		}
-		lines = append(lines, str)
+		lines = append(lines, addSpace(dataToString(value, formatting, nest+1), nest))
 	}
 	lines[len(lines)-1] = strings.TrimSuffix(lines[len(lines)-1], ",")
 	lines = append(lines, addSpace(addComma(format("]", formatType["sliceBracket"], formatting)), nest-1))
@@ -72,21 +63,9 @@ func sliceToString(data []interface{}, formatting bool, nest int) string {
 func objToString(data map[string]interface{}, formatting bool, nest int) string {
 	lines := []string{format("{", formatType["objBracket"], formatting)}
 	for key, value := range data {
-		var str string
 		fmtkey := format(fmt.Sprintf(`"%s"`, key), formatType["key"], formatting)
-		switch convertedValue := value.(type) {
-		case int64, float64:
-			str = numberToString(value, formatting)
-		case bool:
-			str = boolToString(value, formatting)
-		case string:
-			str = stringToString(value, formatting)
-		case []interface{}:
-			str = sliceToString(convertedValue, formatting, nest+1)
-		case map[string]interface{}:
-			str = objToString(convertedValue, formatting, nest+1)
-		}
-		lines = append(lines, addSpace(fmt.Sprintf("%s: %s", fmtkey, str), nest))
+		fmtValue := dataToString(value, formatting, nest+1)
+		lines = append(lines, addSpace(fmt.Sprintf("%s: %s", fmtkey, fmtValue), nest))
 	}
 	lines[len(lines)-1] = strings.TrimSuffix(lines[len(lines)-1], ",")
 	lines = append(lines, addSpace(addComma(format("}", formatType["objBracket"], formatting)), nest-1))
