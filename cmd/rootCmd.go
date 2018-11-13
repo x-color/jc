@@ -24,10 +24,13 @@ func filter(list []string, checker func(string) bool) []string {
 
 func rootCmd() *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "jc",
-		Long:    "jc is a tool to format, color and print JSON input.",
-		Args:    cobra.ExactArgs(1),
-		Example: `  cat data.json | jc .`,
+		Use:  "jc FILTER",
+		Long: "jc is a tool to format, color and print JSON input.",
+		Args: cobra.ExactArgs(1),
+		Example: `  cat data.json | jc .
+  cat data.json | jc .foo
+  cat data.json | jc .foo[0]
+  cat data.json | jc .[1].bar`,
 		RunE: func(cmd *cobra.Command, args []string) error {
 			b, err := ioutil.ReadAll(os.Stdin)
 			if err != nil {
